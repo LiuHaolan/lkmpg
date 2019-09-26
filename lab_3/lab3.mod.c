@@ -18,12 +18,15 @@ static const struct modversion_info ____versions[]
 __used
 __attribute__((section("__versions"))) = {
 	{ 0x2b22e0c3, __VMLINUX_SYMBOL_STR(module_layout) },
-	{ 0xf1ed8c21, __VMLINUX_SYMBOL_STR(proc_remove) },
-	{ 0x736fc972, __VMLINUX_SYMBOL_STR(proc_create_data) },
-	{ 0x79aa04a2, __VMLINUX_SYMBOL_STR(get_random_bytes) },
-	{ 0xf0fdf6cb, __VMLINUX_SYMBOL_STR(__stack_chk_fail) },
+	{ 0x37a0cba, __VMLINUX_SYMBOL_STR(kfree) },
+	{ 0xd4e840fa, __VMLINUX_SYMBOL_STR(kthread_stop) },
+	{ 0xa3e7df22, __VMLINUX_SYMBOL_STR(wake_up_process) },
+	{ 0x5f395d28, __VMLINUX_SYMBOL_STR(kthread_create_on_node) },
+	{ 0x1000e51, __VMLINUX_SYMBOL_STR(schedule) },
+	{ 0x43c86d09, __VMLINUX_SYMBOL_STR(flush_signals) },
+	{ 0xb3f7646e, __VMLINUX_SYMBOL_STR(kthread_should_stop) },
 	{ 0x27e1a049, __VMLINUX_SYMBOL_STR(printk) },
-	{ 0x4f6b400b, __VMLINUX_SYMBOL_STR(_copy_from_user) },
+	{ 0x65a5675c, __VMLINUX_SYMBOL_STR(current_task) },
 	{ 0xbdfb6dbb, __VMLINUX_SYMBOL_STR(__fentry__) },
 };
 
@@ -33,4 +36,4 @@ __attribute__((section(".modinfo"))) =
 "depends=";
 
 
-MODULE_INFO(srcversion, "6E9E2B617A4597EB282E69C");
+MODULE_INFO(srcversion, "634651D4BEC85AD96C41344");

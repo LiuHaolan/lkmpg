@@ -36,9 +36,17 @@ static int add_monkey(unsigned long a)
 
 static int add_item(void){
 	printk(KERN_INFO "In thread\n");
-//	return add_monkey(1);	
-	do_exit(0);
+	// input n argus
+	add_monkey(1);	
+//	do_exit(0);
 //	return 0;
+	while(!kthread_should_stop()){
+		flush_signals(current);
+		set_current_state(TASK_INTERRUPTIBLE);
+		if(!kthread_should_stop())schedule();
+		set_current_state(TASK_RUNNING);
+	}
+	return 0;
 }
 
 static void destroy_list(void)
@@ -79,23 +87,25 @@ void thread_destroy(void){
 	int ret;
 	int a=0;
 	for(a=0;a<4;a++){
-		ret = kthread_stop(thread_list[a]);
-		if(!ret)
-			printk(KERN_INFO "thread stopped");
+		
+			ret = kthread_stop(thread_list[a]);
+			if(!ret)
+			printk(KERN_INFO "thread stopped %d", a);
+		
 	}
 }
 
 static int lab3_init(void){
 	printk(KERN_ALERT "Hello wuklab\n");
 	
-	add_monkey(1);
-//	thread_init();
+//	add_monkey(1);
+	thread_init();
 
 	return 0;
 }
 
 static void lab3_exit(void){
-//	thread_destroy();
+	thread_destroy();
 	destroy_list();
 	printk(KERN_ALERT "wuklab removed\n");
 }
