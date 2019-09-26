@@ -2,37 +2,42 @@
 #include <linux/module.h>
 #include <linux/proc_fs.h>
 #include <linux/random.h>
+#include <asm/uaccess.h>
 MODULE_LICENSE("Dual BSD/GPL");
 
 #define procfs_name "wuklab"
 struct proc_dir_entry *wuklab_file;
 
 //int procfile_read(char* buffer, char*buffer_location, off_t offset, int buffer_lenght, int* eof, void *data)
-int procfile_read(struct file * f,char * data, size_t i, loff_t * offset)
+static ssize_t procfile_read(struct file * f,char * data, size_t i, loff_t * offset)
 {
 	int rand;
 	get_random_bytes(&rand, sizeof(rand));
 	printk(KERN_ALERT"random number generated %d \n",rand);
-	return 0;
+	return rand;
 }
 
-int procfile_write(struct file * f,const char * data, size_t i, loff_t * offset)
+#define BUF_SIZE 100
+static ssize_t procfile_write(struct file * f,const char * data, size_t count, loff_t * offset)
 {
+	char buf[BUF_SIZE];
+	if(copy_from_user(buf, data, count))
+		return -EFAULT;
+	printk(KERN_ALERT "%s", buf);
+	
+	return count;
 
-	printk(KERN_ALERT"echo: %d",(int)i);
-	return -EINVAL;
 }
 
 static const struct file_operations hello_proc_fops = {
 	.owner = THIS_MODULE,
-//	.readproc = hello
 	.read = procfile_read,
 	.write = procfile_write
 };
 
 static int hello_init(void){
 	printk(KERN_ALERT "Hello wuklab\n");
-	wuklab_file = proc_create(procfs_name, 0, NULL, &hello_proc_fops);
+	wuklab_file = proc_create(procfs_name, 0660, NULL, &hello_proc_fops);
 	if(wuklab_file == NULL){
 		proc_remove(wuklab_file);
 		printk(KERN_ALERT "Initialize %s failed\n", procfs_name);
