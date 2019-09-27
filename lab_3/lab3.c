@@ -20,8 +20,10 @@ LIST_HEAD(my_list);
 
 DEFINE_RWLOCK(lock);
 
-static int add_monkey(unsigned long a)
+static int add_monkey(long a)
 {
+//	printk(KERN_INFO "%d", a);
+	//haolan: is kmalloc thread-safe?
 	struct monkey *ple = kmalloc(sizeof *ple, GFP_KERNEL);
 	if(!ple)
 		return -ENOMEM;
@@ -34,10 +36,20 @@ static int add_monkey(unsigned long a)
 	return 0;
 }
 
-static int add_item(void){
+typedef struct {
+	long n;
+	long input;
+} argu_add_item ;
+
+static int add_item(void* data){
+	argu_add_item* argu = (argu_add_item*)data;
+	long n = argu->n;
+	long input = argu->input;
 	printk(KERN_INFO "In thread\n");
 	// input n argus
-	add_monkey(1);	
+	int q = 0;	
+	for(q=0;q<n;q++)
+		add_monkey(input);	
 //	do_exit(0);
 //	return 0;
 	while(!kthread_should_stop()){
@@ -46,13 +58,35 @@ static int add_item(void){
 		if(!kthread_should_stop())schedule();
 		set_current_state(TASK_RUNNING);
 	}
+	kfree(argu);
 	return 0;
+}
+#define BUFSIZE 100
+static void show_list(void)
+{
+	struct list_head *i, *n;
+	struct monkey *ple;
+
+//	read_lock(&lock);
+	int buf[BUFSIZE];
+	int cnt = 0;
+	list_for_each_safe(i, n, &my_list){
+		ple = list_entry(i, struct monkey, list);
+		buf[cnt++] = ple->id;
+	}
+	int d=0;
+	printk(KERN_INFO "\n");
+	for(d=0;d<cnt;d++){
+		printk("%d ",buf[d]);
+	}
+	printk(KERN_INFO "\n");
+//	read_unlock(&lock);
 }
 
 static void destroy_list(void)
 {
 	struct list_head *i, *n;
-	struct monkey_list *ple;
+	struct monkey *ple;
 
 //	write_lock(&lock);
 	list_for_each_safe(i, n, &my_list){
@@ -64,14 +98,21 @@ static void destroy_list(void)
 }
 
 static struct task_struct *thread_list[4];
-int thread_init(void){
+int thread_init(long n){
 	printk(KERN_INFO "kthread init\n");
 //	char* thread_name[4] = {"haolan1","haolan2","haolan3","haolan4"};
-	int j=0;
-	int a = 0;	
+	argu_add_item* argu[4];
+	int j=0;	
 	for(j=0;j<4;j++){
-		
-		thread_list[j] = kthread_run(add_item, NULL, "haolan%d",j);
+		argu[j] = kmalloc(sizeof *argu, GFP_KERNEL);
+		argu[j]->n = n;
+	}	
+	
+	
+	long a = 0;	
+	for(j=0;j<4;j++){
+		argu[j]->input = j;
+		thread_list[j] = kthread_run(add_item, (void*)(argu[j]), "haolan%d",j);
 	}
 /*
 	for(a=0;a<4;j++){
@@ -90,7 +131,7 @@ void thread_destroy(void){
 		
 			ret = kthread_stop(thread_list[a]);
 			if(!ret)
-			printk(KERN_INFO "thread stopped %d", a);
+			printk(KERN_INFO "thread stopped %d\n", a);
 		
 	}
 }
@@ -99,13 +140,15 @@ static int lab3_init(void){
 	printk(KERN_ALERT "Hello wuklab\n");
 	
 //	add_monkey(1);
-	thread_init();
+	thread_init(3);
 
 	return 0;
 }
 
 static void lab3_exit(void){
 	thread_destroy();
+	//test
+	show_list();
 	destroy_list();
 	printk(KERN_ALERT "wuklab removed\n");
 }
