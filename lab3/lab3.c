@@ -12,10 +12,7 @@ struct monkey{
 	unsigned long id;
 	struct list_head list;
 };
-//struct monkey wuk = {
-//	.id = 0,
-//	.list = LIST_HEAD_INIT(wuk.list),
-//};
+
 LIST_HEAD(my_list);
 
 DEFINE_RWLOCK(lock);
@@ -100,7 +97,7 @@ static void destroy_list(void)
 static struct task_struct *thread_list[4];
 int thread_init(long n){
 	printk(KERN_INFO "kthread init\n");
-//	char* thread_name[4] = {"haolan1","haolan2","haolan3","haolan4"};
+
 	argu_add_item* argu[4];
 	int j=0;	
 	for(j=0;j<4;j++){
@@ -114,13 +111,7 @@ int thread_init(long n){
 		argu[j]->input = j;
 		thread_list[j] = kthread_run(add_item, (void*)(argu[j]), "haolan%d",j);
 	}
-/*
-	for(a=0;a<4;j++){
-		if(thread_list[a]){
-			wake_up_process(thread_list[a]);
-		}
-	}
-*/
+
 	return 0;
 }
 
@@ -129,8 +120,8 @@ void thread_destroy(void){
 	int a=0;
 	for(a=0;a<4;a++){
 		
-			ret = kthread_stop(thread_list[a]);
-			if(!ret)
+		ret = kthread_stop(thread_list[a]);
+		if(!ret)
 			printk(KERN_INFO "thread stopped %d\n", a);
 		
 	}
