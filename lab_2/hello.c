@@ -14,7 +14,7 @@ static int rand=0;
 
 static ssize_t procfile_read(struct file * f,char __user* ubuf, size_t i, loff_t * offset)
 {
-	if(*offset >0 || i < BUF_SIZE)
+	if(*offset >0)
 		return 0;
 	
 	get_random_bytes(&rand, sizeof(rand));
@@ -32,11 +32,14 @@ static ssize_t procfile_read(struct file * f,char __user* ubuf, size_t i, loff_t
 
 static ssize_t procfile_write(struct file * f,const char * data, size_t count, loff_t * offset)
 {
+	if(*offset >0)
+		return 0;
 	char buf[BUF_SIZE];
 	if(copy_from_user(buf, data, count))
 		return -EFAULT;
+	buf[count] = '\0';
 	printk(KERN_ALERT "%s", buf);
-	
+	*offset = count;
 	return count;
 
 }
