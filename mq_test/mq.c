@@ -80,12 +80,16 @@ void print(struct list_head* name_nid_dict){
 
 
 void free_all(struct list_head* name_nid_dict){
-	struct mc_msg_queue *pos = NULL;
-	list_for_each_entry(pos, name_nid_dict, list){
-		list_del(&pos->list);
-		kfree(pos->msg_data);
-		kfree(pos);
-	}	
+	struct list_head* cur=name_nid_dict->next;
+	while(cur != name_nid_dict){
+		cur = cur->next;
+		struct mc_msg_queue* item = list_entry(cur, struct mc_msg_queue, list);
+		kfree(item->msg_data);
+		kfree(item);
+	}
+	struct mc_msg_queue* item = list_entry(name_nid_dict, struct mc_msg_queue, list);
+	kfree(item->msg_data);
+	kfree(item);
 }
 
 LIST_HEAD(yi_list);
