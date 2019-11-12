@@ -7,7 +7,7 @@
  * (at your option) any later version.
  */
 
-#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+//#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/kthread.h>
@@ -30,6 +30,12 @@ unsigned int append(char* msg_data, unsigned int msg_size, struct list_head* nam
 	struct mc_msg_queue* tmp;
 	
 	tmp = kmalloc(sizeof(struct mc_msg_queue), GFP_KERNEL);
+	if(!tmp){
+		printk("allocated wrong\n");
+		return 0;
+	}
+
+	tmp->msg_data = kmalloc(sizeof(char)*(msg_size+1), GFP_KERNEL);
 	strcpy(tmp->msg_data, msg_data);
 	tmp->msg_size = msg_size;
 	list_add_tail(&tmp->list, name_nid_dict);	
@@ -46,9 +52,12 @@ unsigned int pop(char* msg_data, int* msg_size, struct list_head* list){
 	struct list_head* next = list->next;
 	
 	struct mc_msg_queue* item = list_entry(next, struct mc_msg_queue, list);
+		
 	strcpy(msg_data, item->msg_data);
 	*msg_size = item->msg_size;
 	list_del(list);
+
+	kfree(item->msg_data);	
 	kfree(item);
 	list = next;
 
@@ -81,7 +90,7 @@ void free_all(struct list_head* name_nid_dict){
 
 LIST_HEAD(yi_list);
 	
-static void mq_test_module_init(void)
+static int mq_test_module_init(void)
 {
 	printk("loaded yi\n");
 	
@@ -89,7 +98,7 @@ static void mq_test_module_init(void)
 	append("STABLE", 3, &yi_list);
 
 	print(&yi_list);
-
+	return 0;
 }
 
 
