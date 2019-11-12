@@ -48,18 +48,18 @@ unsigned int append(char* msg_data, unsigned int msg_size, struct list_head* nam
 
 // the msg data passed in should copy a new memory here, msg_data should point to a continous memory
 //
-unsigned int pop(char* msg_data, int* msg_size, struct list_head* list){
-	struct list_head* next = list->next;
+unsigned int pop(char* msg_data, int* msg_size, struct list_head* name_nid_dict){
+	struct list_head* next = name_nid_dict->next;
 	
 	struct mc_msg_queue* item = list_entry(next, struct mc_msg_queue, list);
 		
 	strcpy(msg_data, item->msg_data);
 	*msg_size = item->msg_size;
-	list_del(list);
+	list_del(&item->list);
 
 	kfree(item->msg_data);	
 	kfree(item);
-	list = next;
+	name_nid_dict = next;
 
 	return 1;
 }
@@ -81,15 +81,17 @@ void print(struct list_head* name_nid_dict){
 
 void free_all(struct list_head* name_nid_dict){
 	struct list_head* cur=name_nid_dict->next;
-	while(cur != name_nid_dict){
-		cur = cur->next;
+	while(cur != name_nid_dict){		
 		struct mc_msg_queue* item = list_entry(cur, struct mc_msg_queue, list);
+		printk("message freed:%s \n", item->msg_data);
+		struct list_head* tmp = cur->next;
+		list_del(cur);
+
+		cur = tmp;
 		kfree(item->msg_data);
 		kfree(item);
 	}
-	struct mc_msg_queue* item = list_entry(name_nid_dict, struct mc_msg_queue, list);
-	kfree(item->msg_data);
-	kfree(item);
+	
 }
 
 LIST_HEAD(yi_list);
@@ -99,7 +101,13 @@ static int mq_test_module_init(void)
 	printk("loaded yi\n");
 	
 	append("NVSL", 4, &yi_list);
-	append("STABLE", 3, &yi_list);
+	append("STABLE", 6, &yi_list);
+	append("WUKLAB", 6, &yi_list);
+	char* msg = kmalloc(sizeof(char)*(MAX_FILENAME_LENGTH+1), GFP_KERNEL);	
+	int size;	
+	pop(msg,&size, &yi_list);
+	printk("%s: %d\n", msg, size);
+	kfree(msg);
 
 	print(&yi_list);
 	return 0;
