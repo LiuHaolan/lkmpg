@@ -7,7 +7,6 @@
  * (at your option) any later version.
  */
 
-//#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/kthread.h>
@@ -24,7 +23,6 @@ struct mc_msg_queue{
 	struct list_head list;
 };
 
-//static LIST_HEAD(name_nid_dict);
 
 unsigned int append(char* msg_data, unsigned int msg_size, struct list_head* name_nid_dict){
 	struct mc_msg_queue* tmp;
@@ -41,13 +39,14 @@ unsigned int append(char* msg_data, unsigned int msg_size, struct list_head* nam
 	list_add_tail(&tmp->list, name_nid_dict);	
 	
 	return 1;
-	// return error if nothing
+	/* return error
+	*/
 }
 
 
 
-// the msg data passed in should copy a new memory here, msg_data should point to a continous memory
-//
+/* the msg data passed in should copy a new memory here, msg_data should point to a continous memory
+*/
 unsigned int pop(char* msg_data, int* msg_size, struct list_head* name_nid_dict){
 	struct list_head* next = name_nid_dict->next;
 	
@@ -119,7 +118,7 @@ static void mq_test_module_exit(void)
 	printk("offload! \n");
 	free_all(&yi_list);
 	printk("free done\n");
-//	pr_info("lego memory monitor module exit\n");
+
 }
 
 module_init(mq_test_module_init);
