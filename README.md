@@ -1,2 +1,2 @@
 # lkmpg
-A repo for linux kernel programming guide
+A repo for linux kernel module
