@@ -6,13 +6,17 @@
 #include <linux/fs.h>
 #include <linux/device.h>
 #include <linux/cdev.h>
- #include <linux/ioctl.h>
+#include <linux/ioctl.h>
+
+#include "query_ioctl.h"
 
 static dev_t first; // Global variable for the first device number 
 static struct cdev c_dev; // Global variable for the character device structure
 static struct class *cl; // Global variable for the device class
 static int my_open(struct inode *i, struct file *f)
 {
+
+
   printk(KERN_INFO "Driver: open()\n");
   return 0;
 }
@@ -34,14 +38,15 @@ static int my_open(struct inode *i, struct file *f)
   return len;
 }
 
-  static long* my_ioctl(struct inode *inode, unsigned int cmd, unsigned long arg)
+  static long my_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
 	
 	switch(cmd) {
-		case 10:
+		case CMD_PROCESS_ID:
 			printk(KERN_INFO "received cmd 10\n");
 			return 0;
 		default:
+			printk(KERN_INFO "default");
 			return -EINVAL;
 	}
 }
@@ -58,7 +63,7 @@ static int my_open(struct inode *i, struct file *f)
  
 static int __init ofcd_init(void) /* Constructor */
 {
-  printk(KERN_INFO "Namaskar: ofcd registered");
+  printk(KERN_INFO "module registered\n");
   if (alloc_chrdev_region(&first, 0, 1, "Shweta") < 0)
   {
     return -1;
@@ -75,6 +80,10 @@ static int __init ofcd_init(void) /* Constructor */
     return -1;
   }
     cdev_init(&c_dev, &pugs_fops);
+
+// lhl
+    c_dev.owner = THIS_MODULE;
+
     if (cdev_add(&c_dev, first, 1) == -1)
   {
     device_destroy(cl, first);
@@ -92,7 +101,7 @@ static void __exit ofcd_exit(void) /* Destructor */
   device_destroy(cl, first);
   class_destroy(cl);
   unregister_chrdev_region(first, 1);
-  printk(KERN_INFO "Alvida: ofcd unregistered");
+  printk(KERN_INFO "module unregistered\n");
 }
  
 module_init(ofcd_init);
